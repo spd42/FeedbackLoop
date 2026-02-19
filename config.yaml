@@ -1,0 +1,33 @@
+timezone: America/New_York
+schedule_hour: 6
+schedule_minute: 0
+
+content_dir: content
+state_file: state/state.json
+output_dir: output
+
+lesson:
+  target_words: 6000
+  min_words: 6000
+  max_words: 20000
+
+anki:
+  cards_per_day: 20
+  min_cards: 20
+  max_cards: 20
+  failed_card_lookback_days: 7
+  failed_card_limit: 30
+
+ingestion:
+  default_pdf_pages_per_day: 5
+  default_links_per_day: 5
+  chunk_words: 450
+  max_total_units_per_day: 5
+
+openai:
+  temperature: 0.3
+  max_source_chars: 3000000
+  enable_pdf_vision: true
+  enable_image_vision: true
+  vision_max_pages_per_day: 5
+  vision_max_images_per_day: 5
