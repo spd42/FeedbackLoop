@@ -272,7 +272,7 @@ class AIClient:
         }
 
         data = self._json_response(
-            system_prompt=f"""You are designing high-quality Anki cards for a {self.settings.language.target_language} whose native language is {self.settings.language.student_native_language}.
+            system_prompt=f"""You are designing high-quality Anki cards for a {self.settings.language.target_language} learner whose native language is {self.settings.language.student_native_language}.
                              Create varied card directions ({self.settings.language.target_language}→{self.settings.language.student_native_language} and {self.settings.language.student_native_language}→{self.settings.language.target_language}).
                              Return valid JSON only.""",
             user_payload=payload,
