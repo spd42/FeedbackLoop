@@ -13,6 +13,7 @@ class AIClient:
             raise ValueError("OPENAI_API_KEY is missing")
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = settings.openai_model
+        self.settings = settings
 
     @staticmethod
     def _lesson_obj_to_markdown(obj: dict) -> str:
@@ -180,11 +181,11 @@ class AIClient:
     failed_cards: list[dict],
     ) -> str:
         prompt = {
-    "lesson_type": "German language learning",
-    "student_native_language": "English",
-    "target_language": "German",
+    "lesson_type": f"{self.settings.language.target_language} language learning",
+    "student_native_language": self.settings.language.student_native_language,
+    "target_language": self.settings.language.target_language,
 
-    "student_goal": "Understand today's German material and correct recent mistakes",
+    "student_goal": f"Understand today's {self.settings.language.target_language} material and correct recent mistakes",
 
     "lesson_source_text": source_packets,
     "recent_failures": failed_cards,
@@ -192,10 +193,10 @@ class AIClient:
     "teaching_style": "Warm, engaging, mentor-style. Avoid textbook tone.",
 
     "rules": [
-        "All explanations must be in English.",
-        "German words and example sentences must appear in German.",
-        "Do NOT explain in German.",
-        "Assume the student is a native English speaker."
+        f"All explanations must be in {self.settings.language.student_native_language}.",
+        f"Main examples must be in {self.settings.language.target_language}.",
+        f"Do not explain grammar fully in {self.settings.language.target_language}.",
+        f"Assume the student is a native {self.settings.language.student_native_language} speaker."
     ],
 
     "constraints": {
@@ -208,10 +209,17 @@ class AIClient:
             input=[
                 {
                     "role": "system",
-                    "content": """You are a German language tutor teaching a native English speaker. 
-                                  All explanations must be in English. 
-                                  German words and example sentences must appear in German, 
-                                  but explanations must always be in English."""
+                    "content": f"""
+                                    You are a professional {self.settings.language.target_language} language tutor.
+
+                                    The student is a native {self.settings.language.student_native_language} speaker learning {self.settings.language.target_language}.
+
+                                    Teaching rules:
+                                    - All explanations must be written in {self.settings.language.student_native_language}.
+                                    - All main examples must be written in {self.settings.language.target_language}.
+                                    - Provide translations into {self.settings.language.student_native_language} when helpful.
+                                    - Never switch fully into {self.settings.language.target_language} for explanations.
+                                    """
                 },
                 {
                     "role": "user",
@@ -254,21 +262,19 @@ class AIClient:
             "recent_failures": failed_cards,
             "target_cards": target_cards,
             "card_design_rules": [
-                "Create a MIX of card directions.",
-                "Some cards should test German → English.",
-                "Some cards should test English → German.",
-                "Some cards can test grammar usage.",
-                "Front must contain a question or prompt.",
-                "Back must contain the correct answer.",
-                "Do NOT always use the same direction.",
-                "Prioritize active recall over recognition."
-            ]
+                "Create a balanced mix of card directions.",
+                f"Some cards must show {self.settings.language.target_language} on the front and require {self.settings.language.student_native_language} on the back.",
+                f"Some cards must show {self.settings.language.student_native_language} on the front and require {self.settings.language.target_language} on the back.",
+                "Some cards may test grammar or sentence construction.",
+                "Front must contain only the prompt.",
+                "Back must contain only the correct answer."
+            ]       
         }
 
         data = self._json_response(
-            system_prompt="""You are designing high-quality Anki cards for a German learner whose native language is English.
-                             Create varied card directions (German→English and English→German).
-                             Return valid JSON only..""",
+            system_prompt=f"""You are designing high-quality Anki cards for a {self.settings.language.target_language} whose native language is {self.settings.language.student_native_language}.
+                             Create varied card directions ({self.settings.language.target_language}→{self.settings.language.student_native_language} and {self.settings.language.student_native_language}→{self.settings.language.target_language}).
+                             Return valid JSON only.""",
             user_payload=payload,
             schema_name="cards",
             schema=schema,

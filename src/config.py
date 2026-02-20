@@ -67,7 +67,13 @@ class Settings:
     smtp_to: str
 
     ankiconnect_url: str
+    
+    language: LanguagePrefs
 
+@dataclass
+class LanguagePrefs:
+    student_native_language: str
+    target_language: str
 
 def load_settings(config_path: str = "config.yaml") -> Settings:
     project_root = Path(__file__).resolve().parent.parent
@@ -118,4 +124,5 @@ def load_settings(config_path: str = "config.yaml") -> Settings:
         smtp_from=get_env("SMTP_FROM", ""),
         smtp_to=get_env("SMTP_TO", ""),
         ankiconnect_url=get_env("ANKICONNECT_URL", "http://127.0.0.1:8765"),
+        language=LanguagePrefs(**cfg["language"]),
     )

@@ -2,11 +2,10 @@
 
 A local, no-UI app that:
 - Reads content from `content/` (PDF, DOCX, TXT/MD, images, and `links.txt`)
-- Tracks what has already been consumed
-- Uses OpenAI to generate a daily lesson and Anki cards
+- Uses OpenAI to generate a daily fun lesson from boring language textbooks and also generate anki cards and then uses Anki performance to reinforce next lessons
 - Pulls recent failed cards from Anki (via AnkiConnect, optional)
 - Exports a daily `.apkg` deck with `genanki`
-- Emails the lesson + deck daily at 6:00 AM local time
+- Emails the lesson + deck daily at whatever time you have scheduled it, can also be run ad hoc whenever you need so you don't have to rely on scheduler
 
 ## Quick Start
 
@@ -17,7 +16,7 @@ A local, no-UI app that:
 3. Copy env file and fill secrets:
    ```bash
    copy .env.example .env   
-4. Get a free smtp server and add the config in config.yaml
+4. Get a free smtp server and Anki and ankiconnect and add the config in config.yaml (it is simple to setup, ask chatgpt)
 5. Edit `config.yaml` for lesson/card size preferences.
 6. Put content into `content/`:
    - PDFs, DOCX, TXT/MD, images
@@ -49,7 +48,7 @@ If unavailable, generation still works without this signal.
 
 ## Email
 
-The app uses SMTP settings from `.env` and sends at 6 AM local time.
+The app uses SMTP settings from `.env` and sends at scheduled time.
 Attachment: generated `.apkg`
 Body: lesson markdown/plaintext
 

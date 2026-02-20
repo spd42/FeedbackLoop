@@ -31,3 +31,7 @@ openai:
   enable_image_vision: true
   vision_max_pages_per_day: 5
   vision_max_images_per_day: 5
+
+language:
+  student_native_language: English
+  target_language: German  
