@@ -259,8 +259,8 @@ class AIClient:
             },
             "required": ["cards"],
         }
-        native = native
-        target = target
+        native = self.settings.language.student_native_language
+        target = self.settings.language.target_language
 
         payload = {
             "lesson": lesson_markdown,
