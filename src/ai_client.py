@@ -180,29 +180,32 @@ class AIClient:
     source_packets: list[dict],
     failed_cards: list[dict],
     ) -> str:
+        native = self.settings.language.student_native_language
+        target = self.settings.language.target_language
+        
         prompt = {
-    "lesson_type": f"{self.settings.language.target_language} language learning",
-    "student_native_language": self.settings.language.student_native_language,
-    "target_language": self.settings.language.target_language,
+            "lesson_type": f"{target} language learning",
+            "student_native_language": native,
+            "target_language": target,
 
-    "student_goal": f"Understand today's {self.settings.language.target_language} material and correct recent mistakes",
+            "student_goal": f"Understand today's {target} material and correct recent mistakes",
 
-    "lesson_source_text": source_packets,
-    "recent_failures": failed_cards,
+            "lesson_source_text": source_packets,
+            "recent_failures": failed_cards,
 
-    "teaching_style": "Warm, engaging, mentor-style. Avoid textbook tone.",
+            "teaching_style": "Warm, engaging, mentor-style. Avoid textbook tone.",
 
-    "rules": [
-        f"All explanations must be in {self.settings.language.student_native_language}.",
-        f"Main examples must be in {self.settings.language.target_language}.",
-        f"Do not explain grammar fully in {self.settings.language.target_language}.",
-        f"Assume the student is a native {self.settings.language.student_native_language} speaker."
-    ],
+            "rules": [
+                f"All explanations must be in {native}.",
+                f"Main examples must be in {target}.",
+                f"Do not explain grammar fully in {target}.",
+                f"Assume the student is a native {native} speaker."
+            ],
 
-    "constraints": {
-        "target_words": target_words,
-    },
-}
+            "constraints": {
+                "target_words": target_words,
+            },
+        }
 
         response = self.client.responses.create(
             model=self.model,
@@ -210,15 +213,15 @@ class AIClient:
                 {
                     "role": "system",
                     "content": f"""
-                                    You are a professional {self.settings.language.target_language} language tutor.
+                                    You are a professional {target} language tutor.
 
-                                    The student is a native {self.settings.language.student_native_language} speaker learning {self.settings.language.target_language}.
+                                    The student is a native {native} speaker learning {target}.
 
                                     Teaching rules:
-                                    - All explanations must be written in {self.settings.language.student_native_language}.
-                                    - All main examples must be written in {self.settings.language.target_language}.
-                                    - Provide translations into {self.settings.language.student_native_language} when helpful.
-                                    - Never switch fully into {self.settings.language.target_language} for explanations.
+                                    - All explanations must be written in {native}.
+                                    - All main examples must be written in {target}.
+                                    - Provide translations into {native} when helpful.
+                                    - Never switch fully into {target} for explanations.
                                     """
                 },
                 {
@@ -256,6 +259,8 @@ class AIClient:
             },
             "required": ["cards"],
         }
+        native = native
+        target = target
 
         payload = {
             "lesson": lesson_markdown,
@@ -263,8 +268,8 @@ class AIClient:
             "target_cards": target_cards,
             "card_design_rules": [
                 "Create a balanced mix of card directions.",
-                f"Some cards must show {self.settings.language.target_language} on the front and require {self.settings.language.student_native_language} on the back.",
-                f"Some cards must show {self.settings.language.student_native_language} on the front and require {self.settings.language.target_language} on the back.",
+                f"Some cards must show {target} on the front and require {native} on the back.",
+                f"Some cards must show {native} on the front and require {target} on the back.",
                 "Some cards may test grammar or sentence construction.",
                 "Front must contain only the prompt.",
                 "Back must contain only the correct answer."
@@ -272,8 +277,8 @@ class AIClient:
         }
 
         data = self._json_response(
-            system_prompt=f"""You are designing high-quality Anki cards for a {self.settings.language.target_language} learner whose native language is {self.settings.language.student_native_language}.
-                             Create varied card directions ({self.settings.language.target_language}→{self.settings.language.student_native_language} and {self.settings.language.student_native_language}→{self.settings.language.target_language}).
+            system_prompt=f"""You are designing high-quality Anki cards for a {target} learner whose native language is {native}.
+                             Create varied card directions ({target}→{native} and {native}→{target}).
                              Return valid JSON only.""",
             user_payload=payload,
             schema_name="cards",
