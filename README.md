@@ -14,20 +14,19 @@ A local, no-UI app that:
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
-   ```
 3. Copy env file and fill secrets:
    ```bash
-   copy .env.example .env
-   ```
-4. Edit `config.yaml` for lesson/card size preferences.
-5. Put content into `content/`:
+   copy .env.example .env   
+4. Get a free smtp server and add the config in config.yaml
+5. Edit `config.yaml` for lesson/card size preferences.
+6. Put content into `content/`:
    - PDFs, DOCX, TXT/MD, images
    - optional `links.txt` (one URL per line)
-6. Run once:
+7. Run once:
    ```bash
    python run.py run-once
    ```
-7. Run scheduler (6 AM daily):
+8. Run scheduler (6 AM daily):
    ```bash
    python run.py serve
    ```

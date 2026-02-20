@@ -173,65 +173,106 @@ class AIClient:
             temperature=0,
         )
 
-    def generate_lesson_and_cards(
-        self,
-        target_words: int,
-        target_cards: int,
-        source_packets: list[dict],
-        failed_cards: list[dict],
-    ) -> LessonBundle:
-        schema = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "lesson_markdown": {"type": "string"},
-        "cards": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {
-                    "front": {"type": "string"},
-                    "back": {"type": "string"},
-                },
-                "required": ["front", "back"],
-            },
-        },
-    },
-    "required": ["lesson_markdown", "cards"],
-}
-
+    def generate_lesson(
+    self,
+    target_words: int,
+    source_packets: list[dict],
+    failed_cards: list[dict],
+    ) -> str:
         prompt = {
-    "student_goal": "Understand today's textbook material and correct recent mistakes",
+    "lesson_type": "German language learning",
+    "student_native_language": "English",
+    "target_language": "German",
+
+    "student_goal": "Understand today's German material and correct recent mistakes",
+
     "lesson_source_text": source_packets,
     "recent_failures": failed_cards,
-    "teaching_instructions": [
-        "Teach the main material from the textbook.",
-        "Explicitly re-teach the failed vocabulary.",
-        "Create example sentences using failed words in new contexts.",
-        "Include comparisons if the mistake is likely confusion (e.g., weil vs denn).",
-        "Make reinforcement feel like part of the lesson, not a separate drill."
+
+    "teaching_style": "Warm, engaging, mentor-style. Avoid textbook tone.",
+
+    "rules": [
+        "All explanations must be in English.",
+        "German words and example sentences must appear in German.",
+        "Do NOT explain in German.",
+        "Assume the student is a native English speaker."
     ],
+
     "constraints": {
         "target_words": target_words,
-        "target_cards": target_cards
-    }
+    },
 }
 
+        response = self.client.responses.create(
+            model=self.model,
+            input=[
+                {
+                    "role": "system",
+                    "content": """You are a German language tutor teaching a native English speaker. 
+                                  All explanations must be in English. 
+                                  German words and example sentences must appear in German, 
+                                  but explanations must always be in English."""
+                },
+                {
+                    "role": "user",
+                    "content": json.dumps(prompt),
+                },
+            ],
+            temperature=0.5,  # <-- more human
+        )
+
+        return response.output[0].content[0].text.strip()
+    
+    def generate_cards(
+    self,
+    lesson_markdown: str,
+    failed_cards: list[dict],
+    target_cards: int,
+    ) -> list[dict]:
+        schema = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "front": {"type": "string"},
+                            "back": {"type": "string"},
+                        },
+                        "required": ["front", "back"],
+                    },
+                },
+            },
+            "required": ["cards"],
+        }
+
+        payload = {
+            "lesson": lesson_markdown,
+            "recent_failures": failed_cards,
+            "target_cards": target_cards,
+            "card_design_rules": [
+                "Create a MIX of card directions.",
+                "Some cards should test German → English.",
+                "Some cards should test English → German.",
+                "Some cards can test grammar usage.",
+                "Front must contain a question or prompt.",
+                "Back must contain the correct answer.",
+                "Do NOT always use the same direction.",
+                "Prioritize active recall over recognition."
+            ]
+        }
+
         data = self._json_response(
-            system_prompt="You are an instructional designer. Return valid JSON only.",
-            user_payload=prompt,
-            schema_name="lesson",
+            system_prompt="""You are designing high-quality Anki cards for a German learner whose native language is English.
+                             Create varied card directions (German→English and English→German).
+                             Return valid JSON only..""",
+            user_payload=payload,
+            schema_name="cards",
             schema=schema,
             temperature=0,
         )
-        normalized = self._normalize_lesson_payload(data)
-        if not normalized["lesson_markdown"]:
-            raise ValueError(f"Model response missing lesson content. Raw keys: {list(data.keys())}")
-        if not normalized["cards"]:
-            raise ValueError(f"Model response missing Anki cards. Raw keys: {list(data.keys())}")
-        cards = normalized["cards"][:target_cards]
-        return LessonBundle(
-            lesson_markdown=normalized["lesson_markdown"],
-            cards=cards,
-        )
+
+        return data["cards"][:target_cards]

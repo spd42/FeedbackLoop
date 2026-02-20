@@ -16,7 +16,7 @@ from .ingest import (
     load_links,
     read_units_for_file,
 )
-from .models import AppState, DailySelection, SourceMeta
+from .models import AppState, DailySelection, LessonBundle, SourceMeta
 from .planner import fallback_selection
 from .scheduler import run_daily
 from .storage import load_state, save_state
@@ -266,11 +266,21 @@ def run_once() -> None:
         raise RuntimeError("No usable content found for today's lesson")
 
     ai = AIClient(settings)
-    bundle = ai.generate_lesson_and_cards(
-        target_words=sel.target_lesson_words,
-        target_cards=sel.target_cards,
-        source_packets=packets,
+    lesson_markdown = ai.generate_lesson(
+    target_words=sel.target_lesson_words,
+    source_packets=packets,
+    failed_cards=failed_cards,
+    )
+
+    cards = ai.generate_cards(
+        lesson_markdown=lesson_markdown,
         failed_cards=failed_cards,
+        target_cards=sel.target_cards,
+    )
+
+    bundle = LessonBundle(
+        lesson_markdown=lesson_markdown,
+        cards=cards,
     )
 
     lesson_file = save_lesson(settings.output_dir, bundle.lesson_markdown)
