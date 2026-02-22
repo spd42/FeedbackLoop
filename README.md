@@ -7,6 +7,9 @@ A local, no-UI app that:
 - Exports a daily `.apkg` deck with `genanki`
 - Emails the lesson + deck daily at whatever time you have scheduled it, can also be run ad hoc whenever you need so you don't have to rely on scheduler
 
+## To-do/upcoming updates
+- MCP to let the user chat with the service to see how autonomy would work in this system and to compare the results with this version 
+
 ## Quick Start
 
 1. Create and activate a Python 3.11+ virtualenv.
